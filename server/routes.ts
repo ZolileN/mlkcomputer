@@ -1,7 +1,13 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import nodemailer from 'nodemailer';
-import { storage } from "./storage";
+
+interface ContactFormData {
+  name: string;
+  email: string;
+  service?: string;
+  message: string;
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create a test account for development
@@ -17,13 +23,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Contact form submission endpoint
-  app.post('/api/contact', async (req, res) => {
+  app.post('/api/contact', async (req: Request, res: Response) => {
     try {
-      const { name, email, service, message } = req.body;
+      const { name, email, service, message } = req.body as ContactFormData;
 
       // Validate required fields
       if (!name || !email || !message) {
         return res.status(400).json({ error: 'Name, email, and message are required' });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Please enter a valid email address' });
       }
 
       // Send mail with defined transport object

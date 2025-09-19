@@ -1,28 +1,36 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, FormEvent } from "react";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL, API_ENDPOINTS } from "@/config";
+import { API_BASE_URL, API_ENDPOINTS } from "@/lib/config"
+
+interface FormData {
+  name: string
+  email: string
+  service: string
+  message: string
+}
 
 export default function Contact() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
-  const { toast } = useToast();
+  const ref = useRef<HTMLDivElement>(null)
+  const isInView = useInView(ref, { once: true, amount: 0.3 })
+  const { toast } = useToast()
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
     service: "",
     message: ""
-  });
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     
     // Basic validation
     if (!formData.name || !formData.email || !formData.message) {
@@ -30,9 +38,12 @@ export default function Contact() {
         title: "Error",
         description: "Please fill in all required fields.",
         variant: "destructive"
-      });
-      return;
+      })
+      return
     }
+
+    // Show success message
+    setIsSubmitting(true)
 
     try {
       const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CONTACT}`, {
@@ -40,49 +51,48 @@ export default function Contact() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          service: formData.service,
-          message: formData.message
-        }),
-      });
-
-      const data = await response.json();
+        body: JSON.stringify(formData),
+      })
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send message');
+        throw new Error('Network response was not ok')
       }
 
-      // Show success message
-      toast({
-        title: "Message Sent!",
-        description: "Thank you for your message. We'll get back to you soon."
-      });
-
-      // Reset form
+      // Reset form on success
       setFormData({
         name: "",
         email: "",
         service: "",
         message: ""
-      });
+      })
+
+      toast({
+        title: "Success!",
+        description: "Your message has been sent successfully.",
+      })
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error submitting form:', error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send message. Please try again later.",
+        description: "There was an error sending your message. Please try again later.",
         variant: "destructive"
-      });
+      })
+    } finally {
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | 
+       { target: { name: string; value: string } } |
+       { name: string; value: string }
+  ) => {
+    const { name, value } = 'target' in e ? e.target : e;
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [name]: value
     }));
-  };
+  }
 
   return (
     <section id="contact" className="py-20 bg-background" ref={ref}>
@@ -112,7 +122,7 @@ export default function Contact() {
                 <Input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  onChange={handleChange}
                   placeholder="Your Name"
                   className="w-full"
                   data-testid="contact-form-name"
@@ -124,7 +134,7 @@ export default function Contact() {
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  onChange={handleChange}
                   placeholder="your@email.com"
                   className="w-full"
                   data-testid="contact-form-email"
@@ -133,7 +143,10 @@ export default function Contact() {
               
               <div>
                 <label className="block text-sm font-medium mb-2">Service Needed</label>
-                <Select value={formData.service} onValueChange={(value) => handleInputChange("service", value)}>
+                <Select 
+                  value={formData.service} 
+                  onValueChange={(value) => handleChange({ target: { name: 'service', value } })}
+                >
                   <SelectTrigger className="w-full" data-testid="contact-form-service">
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>
@@ -154,9 +167,9 @@ export default function Contact() {
                 <label className="block text-sm font-medium mb-2">Message *</label>
                 <Textarea
                   value={formData.message}
-                  onChange={(e) => handleInputChange("message", e.target.value)}
+                  onChange={handleChange}
                   placeholder="Tell us about your project..."
-                  rows={4}
+                  rows={5}
                   className="w-full"
                   data-testid="contact-form-message"
                 />
@@ -166,9 +179,22 @@ export default function Contact() {
                 type="submit"
                 className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground"
                 data-testid="contact-form-submit"
+                disabled={isSubmitting}
               >
-                <Send className="w-4 h-4 mr-2" />
-                Send Message
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Message
+                  </>
+                )}
               </Button>
             </form>
           </motion.div>

@@ -1,0 +1,22 @@
+[build]
+  builder = "nixpacks"
+  buildCommand = "npm run build"
+  installCommand = "cd client && npm install && cd .. && npm install"
+  startCommand = "npm start"
+
+[deploy]
+  startCommand = "npm start"
+  healthcheckPath = "/"
+  healthcheckTimeout = 100
+  restartDelay = 5
+  restartMaxRetries = 3
+  restartTimeout = 180000
+
+[build.environment]
+  NPM_CONFIG_PRODUCTION = "false"
+  NODE_ENV = "production"
+
+[deploy.environment]
+  NODE_ENV = "production"
+  PORT = "3000"
+  HOST = "0.0.0.0"
