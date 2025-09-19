@@ -5,17 +5,15 @@ import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Create a test account for development
-  const testAccount = await nodemailer.createTestAccount();
+  // const testAccount = await nodemailer.createTestAccount();
 
-  // Create reusable transporter object using the default SMTP transport
+  // Create reusable transporter object using Gmail SMTP
   const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email', // For testing, replace with your SMTP server
-    port: 587,
-    secure: false, // true for 465, false for other ports
+    service: 'gmail',
     auth: {
-      user: testAccount.user, // generated ethereal user
-      pass: testAccount.pass, // generated ethereal password
-    },
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS // Use an App Password if 2FA is enabled
+    }
   });
 
   // Contact form submission endpoint
@@ -25,32 +23,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Validate required fields
       if (!name || !email || !message) {
-        return res.status(400).json({ error: 'Name, email, service, and message are required' });
+        return res.status(400).json({ error: 'Name, email, and message are required' });
       }
 
       // Send mail with defined transport object
       const info = await transporter.sendMail({
         from: `"${name}" <${email}>`,
         to: 'zolile.nonzaba@gmail.com',
-        subject: service || 'New Contact Form Submission',
+        subject: service ? `Contact Form: ${service}` : 'New Contact Form Submission',
         text: message,
         html: `
           <h2>New Contact Form Submission</h2>
           <p><strong>Name:</strong> ${name}</p>
           <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Service:</strong> ${service || 'Not specified'}</p>
+          ${service ? `<p><strong>Service:</strong> ${service}</p>` : ''}
           <p><strong>Message:</strong></p>
-          <p>${message}</p>
+          <p>${message.replace(/\n/g, '<br>')}</p>
         `,
       });
 
       console.log('Message sent: %s', info.messageId);
-      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-
       res.status(200).json({ message: 'Message sent successfully!' });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error sending email:', error);
-      res.status(500).json({ error: 'Failed to send message' });
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      res.status(500).json({ 
+        error: 'Failed to send message', 
+        details: errorMessage 
+      });
     }
   });
 
