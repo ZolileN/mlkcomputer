@@ -31,7 +31,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send mail with defined transport object
       const info = await transporter.sendMail({
         from: `"${name}" <${email}>`,
-        to: 'hello@mlkcomputer.com',
+        to: 'zolile.nonzaba@gmail.com',
         subject: service || 'New Contact Form Submission',
         text: message,
         html: `
