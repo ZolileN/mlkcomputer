@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL, API_ENDPOINTS } from "@/config";
 
 export default function Contact() {
   const ref = useRef(null);
@@ -34,7 +35,7 @@ export default function Contact() {
     }
 
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CONTACT}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -47,28 +48,30 @@ export default function Contact() {
         }),
       });
 
-      if (response.ok) {
-        // Show success message
-        toast({
-          title: "Message Sent!",
-          description: "Thank you for your message. We'll get back to you soon."
-        });
+      const data = await response.json();
 
-        // Reset form
-        setFormData({
-          name: "",
-          email: "",
-          service: "",
-          message: ""
-        });
-      } else {
-        throw new Error('Failed to send message');
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
       }
+
+      // Show success message
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for your message. We'll get back to you soon."
+      });
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        service: "",
+        message: ""
+      });
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to send message. Please try again later.",
+        description: error instanceof Error ? error.message : "Failed to send message. Please try again later.",
         variant: "destructive"
       });
     }
