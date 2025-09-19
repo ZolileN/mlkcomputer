@@ -248,7 +248,7 @@ export default function Contact() {
             <div className="pt-8">
               <div className="flex space-x-4">
                 <a
-                  href="#"
+                  href="https://x.com/mlkcomputer"
                   className="bg-secondary/10 hover:bg-secondary hover:text-secondary-foreground p-3 rounded-full transition-all duration-300"
                   data-testid="social-twitter"
                 >
@@ -257,7 +257,7 @@ export default function Contact() {
                   </svg>
                 </a>
                 <a
-                  href="#"
+                  href="https://www.linkedin.com/company/mlk-computer-consulting/?viewAsMember=true"
                   className="bg-accent/10 hover:bg-accent hover:text-accent-foreground p-3 rounded-full transition-all duration-300"
                   data-testid="social-linkedin"
                 >
@@ -266,7 +266,7 @@ export default function Contact() {
                   </svg>
                 </a>
                 <a
-                  href="#"
+                  href="https://www.facebook.com/MlkComputerConsulting/"
                   className="bg-primary/10 hover:bg-primary hover:text-primary-foreground p-3 rounded-full transition-all duration-300"
                   data-testid="social-facebook"
                 >
@@ -275,7 +275,7 @@ export default function Contact() {
                   </svg>
                 </a>
                 <a
-                  href="#"
+                  href="https://www.instagram.com/mlkcomputerconsulting/"
                   className="bg-secondary/10 hover:bg-secondary hover:text-secondary-foreground p-3 rounded-full transition-all duration-300"
                   data-testid="social-instagram"
                 >
