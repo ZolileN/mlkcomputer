@@ -121,6 +121,7 @@ export default function Contact() {
                 <label className="block text-sm font-medium mb-2">Name *</label>
                 <Input
                   type="text"
+                  name="name"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Your Name"
@@ -133,6 +134,7 @@ export default function Contact() {
                 <label className="block text-sm font-medium mb-2">Email *</label>
                 <Input
                   type="email"
+                  name="email"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="your@email.com"
@@ -166,6 +168,7 @@ export default function Contact() {
               <div>
                 <label className="block text-sm font-medium mb-2">Message *</label>
                 <Textarea
+                name="message"
                   value={formData.message}
                   onChange={handleChange}
                   placeholder="Tell us about your project..."
